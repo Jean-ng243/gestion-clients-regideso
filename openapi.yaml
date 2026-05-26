@@ -1,0 +1,670 @@
+openapi: 3.1.0
+info:
+  # Do not change the title, if the title changes, the import paths will be broken
+  title: Api
+  version: 0.1.0
+  description: REGIDESO - API de gestion des clients
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: clients
+    description: Gestion des abonnés
+  - name: consommations
+    description: Suivi des consommations
+  - name: factures
+    description: Gestion des factures
+  - name: reclamations
+    description: Gestion des réclamations
+  - name: dashboard
+    description: Statistiques tableau de bord
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /clients:
+    get:
+      operationId: listClients
+      tags: [clients]
+      summary: Liste des clients
+      parameters:
+        - name: search
+          in: query
+          schema:
+            type: string
+        - name: statut
+          in: query
+          schema:
+            type: string
+            enum: [actif, inactif, suspendu]
+      responses:
+        "200":
+          description: Liste des clients
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Client"
+    post:
+      operationId: createClient
+      tags: [clients]
+      summary: Creer un client
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientInput"
+      responses:
+        "201":
+          description: Client cree
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+
+  /clients/{id}:
+    get:
+      operationId: getClient
+      tags: [clients]
+      summary: Detail d'un client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Client trouve
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+        "404":
+          description: Client non trouve
+    patch:
+      operationId: updateClient
+      tags: [clients]
+      summary: Modifier un client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClientUpdate"
+      responses:
+        "200":
+          description: Client modifie
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Client"
+    delete:
+      operationId: deleteClient
+      tags: [clients]
+      summary: Supprimer un client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: Client supprime
+
+  /clients/{id}/consommations:
+    get:
+      operationId: getClientConsommations
+      tags: [consommations]
+      summary: Consommations d'un client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Liste des consommations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Consommation"
+
+  /clients/{id}/factures:
+    get:
+      operationId: getClientFactures
+      tags: [factures]
+      summary: Factures d'un client
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Liste des factures
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Facture"
+
+  /consommations:
+    get:
+      operationId: listConsommations
+      tags: [consommations]
+      summary: Toutes les consommations
+      parameters:
+        - name: mois
+          in: query
+          schema:
+            type: integer
+        - name: annee
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Liste des consommations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Consommation"
+    post:
+      operationId: createConsommation
+      tags: [consommations]
+      summary: Enregistrer une consommation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ConsommationInput"
+      responses:
+        "201":
+          description: Consommation enregistree
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Consommation"
+
+  /factures:
+    get:
+      operationId: listFactures
+      tags: [factures]
+      summary: Toutes les factures
+      parameters:
+        - name: statut
+          in: query
+          schema:
+            type: string
+            enum: [payee, impayee, en_attente]
+      responses:
+        "200":
+          description: Liste des factures
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Facture"
+    post:
+      operationId: createFacture
+      tags: [factures]
+      summary: Creer une facture
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FactureInput"
+      responses:
+        "201":
+          description: Facture creee
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Facture"
+
+  /factures/{id}:
+    patch:
+      operationId: updateFacture
+      tags: [factures]
+      summary: Mettre a jour une facture
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/FactureUpdate"
+      responses:
+        "200":
+          description: Facture mise a jour
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Facture"
+
+  /reclamations:
+    get:
+      operationId: listReclamations
+      tags: [reclamations]
+      summary: Toutes les reclamations
+      parameters:
+        - name: statut
+          in: query
+          schema:
+            type: string
+            enum: [ouverte, en_cours, resolue, fermee]
+      responses:
+        "200":
+          description: Liste des reclamations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Reclamation"
+    post:
+      operationId: createReclamation
+      tags: [reclamations]
+      summary: Soumettre une reclamation
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReclamationInput"
+      responses:
+        "201":
+          description: Reclamation creee
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reclamation"
+
+  /reclamations/{id}:
+    patch:
+      operationId: updateReclamation
+      tags: [reclamations]
+      summary: Mettre a jour une reclamation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ReclamationUpdate"
+      responses:
+        "200":
+          description: Reclamation mise a jour
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Reclamation"
+
+  /dashboard/stats:
+    get:
+      operationId: getDashboardStats
+      tags: [dashboard]
+      summary: Statistiques generales
+      responses:
+        "200":
+          description: Statistiques du tableau de bord
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /dashboard/consommations-mensuelles:
+    get:
+      operationId: getConsommationsMensuelles
+      tags: [dashboard]
+      summary: Consommations agregees par mois (12 derniers mois)
+      responses:
+        "200":
+          description: Consommations mensuelles
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ConsommationMensuelle"
+
+  /dashboard/reclamations-par-type:
+    get:
+      operationId: getReclamationsParType
+      tags: [dashboard]
+      summary: Repartition des reclamations par type
+      responses:
+        "200":
+          description: Reclamations par type
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ReclamationParType"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    Client:
+      type: object
+      required: [id, numeroAbonnement, nom, prenom, adresse, telephone, statut, dateInscription]
+      properties:
+        id:
+          type: integer
+        numeroAbonnement:
+          type: string
+        nom:
+          type: string
+        prenom:
+          type: string
+        adresse:
+          type: string
+        telephone:
+          type: string
+        email:
+          type: string
+          nullable: true
+        statut:
+          type: string
+          enum: [actif, inactif, suspendu]
+        dateInscription:
+          type: string
+        quartier:
+          type: string
+          nullable: true
+        commune:
+          type: string
+          nullable: true
+
+    ClientInput:
+      type: object
+      required: [nom, prenom, adresse, telephone]
+      properties:
+        nom:
+          type: string
+        prenom:
+          type: string
+        adresse:
+          type: string
+        telephone:
+          type: string
+        email:
+          type: string
+        statut:
+          type: string
+          enum: [actif, inactif, suspendu]
+        quartier:
+          type: string
+        commune:
+          type: string
+
+    ClientUpdate:
+      type: object
+      properties:
+        nom:
+          type: string
+        prenom:
+          type: string
+        adresse:
+          type: string
+        telephone:
+          type: string
+        email:
+          type: string
+        statut:
+          type: string
+          enum: [actif, inactif, suspendu]
+        quartier:
+          type: string
+        commune:
+          type: string
+
+    Consommation:
+      type: object
+      required: [id, clientId, mois, annee, m3Consommes, dateReleve]
+      properties:
+        id:
+          type: integer
+        clientId:
+          type: integer
+        clientNom:
+          type: string
+          nullable: true
+        clientPrenom:
+          type: string
+          nullable: true
+        numeroAbonnement:
+          type: string
+          nullable: true
+        mois:
+          type: integer
+        annee:
+          type: integer
+        m3Consommes:
+          type: number
+        dateReleve:
+          type: string
+
+    ConsommationInput:
+      type: object
+      required: [clientId, mois, annee, m3Consommes, dateReleve]
+      properties:
+        clientId:
+          type: integer
+        mois:
+          type: integer
+        annee:
+          type: integer
+        m3Consommes:
+          type: number
+        dateReleve:
+          type: string
+
+    Facture:
+      type: object
+      required: [id, clientId, montant, statutPaiement, dateEmission]
+      properties:
+        id:
+          type: integer
+        clientId:
+          type: integer
+        clientNom:
+          type: string
+          nullable: true
+        clientPrenom:
+          type: string
+          nullable: true
+        numeroAbonnement:
+          type: string
+          nullable: true
+        consommationId:
+          type: integer
+          nullable: true
+        montant:
+          type: number
+        statutPaiement:
+          type: string
+          enum: [payee, impayee, en_attente]
+        dateEmission:
+          type: string
+        dateEcheance:
+          type: string
+          nullable: true
+        datePaiement:
+          type: string
+          nullable: true
+
+    FactureInput:
+      type: object
+      required: [clientId, montant, statutPaiement, dateEmission]
+      properties:
+        clientId:
+          type: integer
+        consommationId:
+          type: integer
+        montant:
+          type: number
+        statutPaiement:
+          type: string
+          enum: [payee, impayee, en_attente]
+        dateEmission:
+          type: string
+        dateEcheance:
+          type: string
+
+    FactureUpdate:
+      type: object
+      properties:
+        montant:
+          type: number
+        statutPaiement:
+          type: string
+          enum: [payee, impayee, en_attente]
+        datePaiement:
+          type: string
+
+    Reclamation:
+      type: object
+      required: [id, clientId, type, description, statut, dateCreation]
+      properties:
+        id:
+          type: integer
+        clientId:
+          type: integer
+        clientNom:
+          type: string
+          nullable: true
+        clientPrenom:
+          type: string
+          nullable: true
+        numeroAbonnement:
+          type: string
+          nullable: true
+        type:
+          type: string
+          enum: [fuite, facturation, coupure, qualite, autre]
+        description:
+          type: string
+        statut:
+          type: string
+          enum: [ouverte, en_cours, resolue, fermee]
+        dateCreation:
+          type: string
+        dateResolution:
+          type: string
+          nullable: true
+
+    ReclamationInput:
+      type: object
+      required: [clientId, type, description]
+      properties:
+        clientId:
+          type: integer
+        type:
+          type: string
+          enum: [fuite, facturation, coupure, qualite, autre]
+        description:
+          type: string
+
+    ReclamationUpdate:
+      type: object
+      properties:
+        statut:
+          type: string
+          enum: [ouverte, en_cours, resolue, fermee]
+        dateResolution:
+          type: string
+
+    DashboardStats:
+      type: object
+      required: [totalClients, clientsActifs, clientsSuspendus, totalFactures, facturesImpayees, montantImpaye, reclamationsOuvertes, totalConsommationMois]
+      properties:
+        totalClients:
+          type: integer
+        clientsActifs:
+          type: integer
+        clientsSuspendus:
+          type: integer
+        totalFactures:
+          type: integer
+        facturesImpayees:
+          type: integer
+        montantImpaye:
+          type: number
+        reclamationsOuvertes:
+          type: integer
+        totalConsommationMois:
+          type: number
+
+    ConsommationMensuelle:
+      type: object
+      required: [mois, annee, totalM3, label]
+      properties:
+        mois:
+          type: integer
+        annee:
+          type: integer
+        totalM3:
+          type: number
+        label:
+          type: string
+
+    ReclamationParType:
+      type: object
+      required: [type, count]
+      properties:
+        type:
+          type: string
+        count:
+          type: integer
